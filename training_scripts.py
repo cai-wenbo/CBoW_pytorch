@@ -25,7 +25,7 @@ def train_CBoW(training_config):
             embedding_dim=training_config['embedding_dim']
             ).to(device)
 
-    #  cbow_model = cbow_model.to(device)
+    #  load
     if training_config.get('model_path_src') is not None:
         model_dict = torch.load(training_config['model_path_src'])
         cbow_model.load_state_dict(model_dict)
@@ -47,8 +47,8 @@ def train_CBoW(training_config):
     '''
     dataloader
     '''
-    dataset = SQLiteDataset(db_path='data/BBCnews_processed.db', query='SELECT context, target FROM pairs', freq_path='word_occurrence.csv', negative_sample_size=4)
-    dataloader = DataLoader(dataset, batch_size=20, shuffle=True)
+    dataset = SQLiteDataset(db_path='data/BBCnews_processed.db', query='SELECT context, target FROM pairs', freq_path='data/word_occurrence.csv', negative_sample_size=training_config['negative_sample_size'])
+    dataloader = DataLoader(dataset, batch_size=training_config['batch_size'], shuffle=True)
 
 
 
@@ -70,9 +70,12 @@ def train_CBoW(training_config):
 
 if __name__ == "__main__":
     training_config = dict()
-    training_config['vocab_size'] = 8836
-    training_config['embedding_dim'] = 16
-    training_config['num_of_epochs'] = 40
-    training_config['model_path_dst'] = 'saved_embedding.pth'
-    #  training_config['model_path_src'] = 'saved_embedding.pth'
+    training_config['vocab_size']           = 8836
+    training_config['embedding_dim']        = 16
+    training_config['negative_sample_size'] = 4
+    training_config['num_of_epochs']        = 40
+    training_config['batch_size']           = 20
+    training_config['model_path_dst']       = 'saved_embedding.pth'
+    training_config['learning_rate']        = 0.1
+    #  training_config['model_path_src']    = 'saved_embedding.pth'
     train_CBoW(training_config)
