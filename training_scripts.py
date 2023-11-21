@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.init import uniform_
 import torch.optim as optim
 from torch.utils.data import DataLoader, dataloader
 from model.cbow import CBoW
@@ -22,7 +23,8 @@ def train_CBoW(training_config):
     '''
     cbow_model = CBoW(
             vocab_size=training_config['vocab_size'],
-            embedding_dim=training_config['embedding_dim']
+            embedding_dim=training_config['embedding_dim'],
+            init_method=training_config['init_method']
             ).to(device)
 
     #  load
@@ -72,6 +74,7 @@ if __name__ == "__main__":
     training_config = dict()
     training_config['vocab_size']           = 8836
     training_config['embedding_dim']        = 16
+    training_config['init_method']          = 'uniform'
     training_config['negative_sample_size'] = 4
     training_config['num_of_epochs']        = 40
     training_config['batch_size']           = 20

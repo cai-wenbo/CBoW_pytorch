@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.init as init
 
 
 
@@ -9,9 +10,11 @@ return: (scores)
 where v_c is the average of the context vectors
 '''
 class CBoW(nn.Module):
-    def __init__(self, vocab_size, embedding_dim):
+    def __init__(self, vocab_size, embedding_dim, init_method = None):
         super(CBoW, self).__init__()
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.init_params(init_method)
+
         #  self.linear shape = nn.Linear(embedding_dim, vocab_size)
 
     
@@ -19,7 +22,14 @@ class CBoW(nn.Module):
     skip init because pytorch has already done it for 
     us, using Kaiming He initialization
     '''
-    #  def init_params(self, default_initialization = False):
+    def init_params(self, init_method):
+        if init_method is not None:
+            if init_method == 'uniform':
+                init.uniform_(self.embedding.weight.data, a = -1, b = 1)
+            elif init_method == 'normal':
+                init.normal_(self.embedding.weight.data, mean = 0, std = 1)
+
+        
 
 
     '''
