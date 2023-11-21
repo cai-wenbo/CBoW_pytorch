@@ -36,7 +36,7 @@ def train_CBoW(training_config):
     '''
     optimizer
     '''
-    optimizer = optim.Adam(cbow_model.parameters(), lr=0.1)
+    optimizer = optim.Adam(cbow_model.parameters(), lr=training_config['learning_rate'])
 
 
     '''
@@ -79,6 +79,6 @@ if __name__ == "__main__":
     training_config['num_of_epochs']        = 40
     training_config['batch_size']           = 20
     training_config['model_path_dst']       = 'saved_embedding.pth'
-    training_config['learning_rate']        = 0.1
+    training_config['learning_rate']        = 1e-2
     #  training_config['model_path_src']    = 'saved_embedding.pth'
     train_CBoW(training_config)
