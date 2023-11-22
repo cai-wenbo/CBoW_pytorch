@@ -42,7 +42,7 @@ def train_CBoW(training_config):
     '''
     loss 
     '''
-    criterion = CBoW_loss()
+    criterion = CBoW_loss().to(device)
 
 
 
@@ -57,6 +57,7 @@ def train_CBoW(training_config):
     for epoch in range(training_config['num_of_epochs']):
         loss_sum = 0
         for i, inputs in enumerate(dataloader):
+            inputs = inputs.to(device)
             optimizer.zero_grad()
             scores = cbow_model(inputs)
             loss = criterion(scores)
@@ -65,8 +66,10 @@ def train_CBoW(training_config):
             optimizer.step()
         print(loss_sum)
 
-    torch.save(cbow_model.state_dict(), training_config['model_path_dst'])
 
+    
+    cbow_model = cbow_model.to('cpu')
+    torch.save(cbow_model.state_dict(), training_config['model_path_dst'])
 
 
 
@@ -79,6 +82,6 @@ if __name__ == "__main__":
     training_config['num_of_epochs']        = 40
     training_config['batch_size']           = 20
     training_config['model_path_dst']       = 'saved_embedding.pth'
-    training_config['learning_rate']        = 1e-2
+    training_config['learning_rate']        = 1e-4
     #  training_config['model_path_src']    = 'saved_embedding.pth'
     train_CBoW(training_config)
