@@ -1,15 +1,12 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.init import uniform_
 import torch.optim as optim
 from torch.utils.data import DataLoader, dataloader
 from model.cbow import CBoW
 from utils.utils import CBoW_loss
 from utils.utils import SQLiteDataset
-import utils.utils
 
-#  from 
 
 
 
@@ -49,22 +46,37 @@ def train_CBoW(training_config):
     '''
     dataloader
     '''
-    dataset = SQLiteDataset(db_path='data/BBCnews_processed.db', query='SELECT context, target FROM pairs', freq_path='data/word_occurrence.csv', negative_sample_size=training_config['negative_sample_size'])
-    dataloader = DataLoader(dataset, batch_size=training_config['batch_size'], shuffle=True)
+    dataset_train = SQLiteDataset(db_path='data/BBCnews_processed.db', query='SELECT context, target FROM pairs_train', freq_path='data/word_occurrence.csv', negative_sample_size=training_config['negative_sample_size'])
+    dataset_eval = SQLiteDataset(db_path='data/BBCnews_processed.db', query='SELECT context, target FROM pairs_eval', freq_path='data/word_occurrence.csv', negative_sample_size=training_config['negative_sample_size'])
+    dataloader_train = DataLoader(dataset_train, batch_size=training_config['batch_size'], shuffle=True)
+    dataloader_eval = DataLoader(dataset_eval, batch_size=training_config['batch_size'], shuffle=True)
 
 
 
     for epoch in range(training_config['num_of_epochs']):
-        loss_sum = 0
-        for i, inputs in enumerate(dataloader):
+        loss_sum_train = 0
+        loss_sum_eval = 0
+        #  train loop
+        for i, inputs in enumerate(dataloader_train):
             inputs = inputs.to(device)
             optimizer.zero_grad()
             scores = cbow_model(inputs)
             loss = criterion(scores)
-            loss_sum += torch.sum(loss)
+            loss_sum_train += torch.sum(loss)
             loss.backward()
             optimizer.step()
-        print(loss_sum)
+
+        #  validation loop
+        with torch.no_grad():
+            for i, inputs in enumerate(dataloader_eval):
+                inputs = inputs.to(device)
+                scores = cbow_model(inputs)
+                loss = criterion(scores)
+                loss_sum_eval += torch.sum(loss)
+        
+        train_loss = loss_sum_train / len(dataloader_train)
+        eval_loss = loss_sum_eval / len(dataloader_eval)
+        print(f'Epoch: {epoch+1}, Train Loss: {train_loss:.6f}, Test Loss: {eval_loss:.6f}')
 
 
     
@@ -75,11 +87,11 @@ def train_CBoW(training_config):
 
 if __name__ == "__main__":
     training_config = dict()
-    training_config['vocab_size']           = 8836
-    training_config['embedding_dim']        = 16
+    training_config['vocab_size']           = 6957
+    training_config['embedding_dim']        = 32
     training_config['init_method']          = 'uniform'
     training_config['negative_sample_size'] = 4
-    training_config['num_of_epochs']        = 40
+    training_config['num_of_epochs']        = 20
     training_config['batch_size']           = 20
     training_config['model_path_dst']       = 'saved_embedding.pth'
     training_config['learning_rate']        = 1e-4
