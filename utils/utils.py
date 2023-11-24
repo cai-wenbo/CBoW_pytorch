@@ -44,15 +44,15 @@ class SQLiteDataset(Dataset):
         self.cursor.execute(query)
         self.data = self.cursor.fetchall()
         self.negative_sample_size = negative_sample_size
-        self.encoding_list = list()
+        self.tokens_list = list()
         self.freq_list = list()
         
-
+        #  read the freq dict of every encoded token
         with open(freq_path, 'r') as f:
             csv_reader = csv.reader(f)
             
             for row in csv_reader:
-                self.encoding_list.append(int(row[0]))
+                self.tokens_list.append(int(row[0]))
                 self.freq_list.append(int(row[1]))
 
             f.close()
@@ -65,7 +65,7 @@ class SQLiteDataset(Dataset):
         serialized_context, target = self.data[idx]
         context = json.loads(serialized_context)
 
-        negative_targets = random.choices(self.encoding_list, weights=self.freq_list, k=self.negative_sample_size)
+        negative_targets = random.choices(self.tokens_list, weights=self.freq_list, k=self.negative_sample_size)
         
         #  print(len(context))
         #  print(target.dtype)
@@ -76,5 +76,6 @@ class SQLiteDataset(Dataset):
         context_tensor = torch.tensor(context, dtype=torch.int32)
         targets_tensor = torch.tensor(concated_targets, dtype=torch.int32)
         return context_tensor, targets_tensor
+
 
 
