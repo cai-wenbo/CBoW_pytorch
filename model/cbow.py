@@ -35,10 +35,9 @@ class CBoW(nn.Module):
     '''
     return the scores of the targets
     '''
-    def forward(self, inputs):
+    def forward(self, context, targets):
         #  context shape = (batch_size, context_size)
         #  targets shape = (batch_size, target_size)
-        context, targets = inputs
         
 
         # embedded_context shape = (batch_size, context_size, embedding_dim)

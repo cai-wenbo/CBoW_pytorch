@@ -1,3 +1,4 @@
+import contextlib
 import torch
 import torch.nn as nn
 from torch.nn.init import uniform_
@@ -58,9 +59,12 @@ def train_CBoW(training_config):
         loss_sum_eval = 0
         #  train loop
         for i, inputs in enumerate(dataloader_train):
-            inputs = inputs.to(device)
+            #  inputs = inputs.to(device)
+            context, targets = inputs
+            context = context.to(device)
+            targets = targets.to(device)
             optimizer.zero_grad()
-            scores = cbow_model(inputs)
+            scores = cbow_model(context, targets)
             loss = criterion(scores)
             loss_sum_train += torch.sum(loss)
             loss.backward()
@@ -69,8 +73,10 @@ def train_CBoW(training_config):
         #  validation loop
         with torch.no_grad():
             for i, inputs in enumerate(dataloader_eval):
-                inputs = inputs.to(device)
-                scores = cbow_model(inputs)
+                context, targets = inputs
+                context = context.to(device)
+                targets = targets.to(device)
+                scores = cbow_model(context, targets)
                 loss = criterion(scores)
                 loss_sum_eval += torch.sum(loss)
         
