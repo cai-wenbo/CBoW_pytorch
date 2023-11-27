@@ -5,7 +5,6 @@ import csv
 
 
 
-
 '''
 return the cross score of src to every word
 value of src should be of type int 
@@ -14,6 +13,8 @@ return tensor shape (vocab_size)
 class CrossScoreCalculator():
     def __init__(self, vocab_size, embedding_dim, model_path = None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") 
+        self.vocab_size = vocab_size
+
 
         '''
         load cbow model
@@ -31,12 +32,11 @@ class CrossScoreCalculator():
         #  src_tensor shape: (1)
         #  targets_tensor shape: (vocab_size)
         src_tensor = torch.tensor(src_idx, dtype=torch.int32).view(1,-1).to(self.device)
-        trgs_tensor = torch.arange(vocab_size).view(1,1,-1).to(self.device)
+        trgs_tensor = torch.arange(self.vocab_size).view(1,1,-1).to(self.device)
 
         
         scores = self.cbow_model(src_tensor, trgs_tensor).view(-1).to('cpu')
         return scores
-
 
 
 
@@ -50,6 +50,7 @@ class NeighboursExtractor():
         self.cross_score_calculator = CrossScoreCalculator(vocab_size, embedding_dim, model_path)
         self.idx2word = dict()
         self.word2idx = dict()
+        self.idx2word[0] = 'UNK'
         
         #  read the coding dict of every encoded token
         with open(encoding_path, 'r') as f:
@@ -65,13 +66,17 @@ class NeighboursExtractor():
 
     
     def __call__(self, src, n, limit = 2000):
-        scores = self.cross_score_calculator(self.word2idx[src])
-        scores = scores.tolist()
-        scores = scores[:limit]
-        indexed_scores = list(enumerate(scores))
-        sorted_scores = sorted(indexed_scores, key=lambda x: x[1], reverse=True)
-        top_n_words = [self.idx2word[index] for index, _ in sorted_scores[:n]]
-        return top_n_words
+        if self.word2idx.get(src) is None:
+            return None
+        else:
+            scores = self.cross_score_calculator(self.word2idx[src])
+            scores = scores.tolist()
+            scores = scores[:limit]
+            indexed_scores = list(enumerate(scores))
+            sorted_scores = sorted(indexed_scores, key=lambda x: x[1], reverse=True)
+            top_n_words = [self.idx2word[index] for index, _ in sorted_scores[:n]]
+            return top_n_words
+
 
 
 
@@ -88,4 +93,8 @@ if __name__ == "__main__":
 
     while True:
         src = input("enter the src word:\n")
-        print(neighbours_extractor(src, 5))
+        neighbours = neighbours_extractor(src, 5)
+        if neighbours is None:
+            print("This word is not in the vocab!")
+        else:
+            print(neighbours_extractor(src, 5))
