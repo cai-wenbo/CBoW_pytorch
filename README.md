@@ -1,7 +1,11 @@
-data/BBCnews_processed.db contains two tables, one containing preprocessed text and another containing pairs for training  
-(integer, word) pairs in data/encoding_table.csv   
-(integer, counts) pairs in data/word_occurrence.csv
+# Introduction
+This is an implementation of the CBoW model, written in pytorch.  
 
+# Way to use
+You can run the training_scripts and the inspect_scripts to test the performance of the model.  
 
-![training error screen shot](pictures/2023-11-20_06-21.png)  
+The dataset for demo was extracted from BBC news, and the demo embedding model was pretrained on it.   
+
+# To Do
+Currently the bottleneck of model training is the generation of the negative targets. Which uses only one cpu, so now whether you train the model on a GPU doesn't make a significant difference on the speed. We can try to use multithread to get boost.   
 
